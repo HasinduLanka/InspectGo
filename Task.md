@@ -22,7 +22,7 @@ I faced the following challenges while working on this project.
 
 ## Many websites do not allow scanning with tools like this
 
-Many websites block HTTP requests from non-browser clients to prevent scam, making many website links appear broken. I solved this issue by setting custom HTTP headers on requests to disguise as a web browser.
+Many websites block HTTP requests from non-browser clients to prevent scams, making many website links appear broken. I solved this issue by setting custom HTTP headers on requests to disguise as a web browser.
 
 However, this is only used to analyze external links on a web page. Directly scanning a protected website is disabled due to possible legal reasons.
 
@@ -49,7 +49,7 @@ Possible solutions:
 
 ## Client-side rendered content
 
-Websites built with frameworks like React or Svelte uses client side rendering where the actual content of a web page is rendered inside the browser. Inspecting these kinds of web pages is not possible unless they are hydrated or pre-rendered on the origin server.
+Websites built with frameworks like React or Svelte use client-side rendering where the actual content of a web page is rendered inside the browser. Inspecting these kinds of web pages is not possible unless they are hydrated or pre-rendered on the origin server.
 
 A possible solution is to use a headless browser environment such as puppeteer or selenium to render the web page and inspect it. But this will bring the project complexity to another level. Therefore, this isn't yet solved.
 
