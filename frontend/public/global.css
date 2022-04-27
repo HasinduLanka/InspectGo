@@ -7,4 +7,12 @@ body {
 
 body {
 	margin: 0;
+	background-color: #1e293b;
+	color: #cbd5e1;
+}
+
+* {
+	font-family: "Open Sans", sans-serif;
+	padding: 0px;
+	margin: 0px;
 }
