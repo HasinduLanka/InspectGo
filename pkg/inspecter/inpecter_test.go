@@ -22,7 +22,7 @@ func TestInspectURLStatusCode(t *testing.T) {
 	}
 
 	for url, expectedStatusCode := range expectedStatusCodes {
-		report := InspectURL(url)
+		report := InspectURL(url, nil)
 		if report.StatusCode != expectedStatusCode {
 			t.Errorf("URL %s returned status code %d, expected %d", url, report.StatusCode, expectedStatusCode)
 		} else {
@@ -40,7 +40,7 @@ func TestInspectURLTitle(t *testing.T) {
 	}
 
 	for url, expectedTitle := range expectedTitles {
-		report := InspectURL(url)
+		report := InspectURL(url, nil)
 		if report.PageTitle != expectedTitle {
 			t.Errorf("URL %s returned title %s, expected %s", url, report.PageTitle, expectedTitle)
 		} else {
@@ -58,7 +58,7 @@ func TestInspectURLDocType(t *testing.T) {
 	}
 
 	for url, expectedDocType := range expectedDocTypes {
-		report := InspectURL(url)
+		report := InspectURL(url, nil)
 		if report.HTMLVersion != expectedDocType {
 			t.Errorf("URL %s returned doc type %s, expected %s", url, report.HTMLVersion, expectedDocType)
 		} else {
@@ -85,7 +85,7 @@ func TestInspectURLHeadings(t *testing.T) {
 	}
 
 	for url, expectedHeadingCount := range expectedHeadingCounts {
-		report := InspectURL(url)
+		report := InspectURL(url, nil)
 		for heading, expectedCount := range expectedHeadingCount {
 			if len(report.Headings[heading]) != expectedCount {
 				t.Errorf("URL %s returned %d headings of type %s, expected %d", url, len(report.Headings[heading]), heading, expectedCount)
@@ -112,7 +112,7 @@ func TestInspectURLLinks(t *testing.T) {
 	}
 
 	for url, expectedReport := range expectedLinkCounts {
-		report := InspectURL(url)
+		report := InspectURL(url, nil)
 		if report.TotalLinkCount != expectedReport.TotalLinkCount {
 			t.Errorf("URL %s returned %d total links, expected %d", url, report.TotalLinkCount, expectedReport.TotalLinkCount)
 		}

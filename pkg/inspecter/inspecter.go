@@ -1,14 +1,22 @@
 package inspecter
 
 import (
+	"context"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
+	"sync"
+	"time"
 	"unicode"
 
 	"golang.org/x/net/html"
 )
+
+var MaximumConcurrentLinkAnalysis = 256
+
+// Control the number of concurrent link analysers
+var concurrentLinkAnalysersSemaphore chan struct{} = make(chan struct{}, MaximumConcurrentLinkAnalysis)
 
 type InspectReport struct {
 	URL        string `json:"url"`
@@ -23,9 +31,16 @@ type InspectReport struct {
 
 	Links []*InspectedLink `json:"links"`
 
-	TotalLinkCount    int `json:"total_link_count"`
-	ExternalLinkCount int `json:"external_link_count"`
-	InternalLinkCount int `json:"internal_link_count"`
+	AccessibleLinkCount   int `json:"accessible_link_count"`
+	InaccessibleLinkCount int `json:"inaccessible_link_count"`
+	NotAnalysedLinkCount  int `json:"not_analysed_link_count"`
+	TotalLinkCount        int `json:"total_link_count"`
+	ExternalLinkCount     int `json:"external_link_count"`
+	InternalLinkCount     int `json:"internal_link_count"`
+
+	LinkAnalyticWG       *sync.WaitGroup    `json:"-"`
+	RequestContext       *context.Context   `json:"-"`
+	RequestContextCancel context.CancelFunc `json:"-"`
 }
 
 type InspectedLink struct {
@@ -35,8 +50,13 @@ type InspectedLink struct {
 	StatusCode int    `json:"status_code"`
 }
 
-// InspectURL returns an InspectReport for the given URL
-func InspectURL(inputURL string) *InspectReport {
+// InspectURL returns an InspectReport for the given URL immediately, and continues to analyse the links in the background
+//
+// linkAnalyticsTimout is the maximum time to wait for the request analytics to complete.
+// If the requests takes longer than linkAnalyticsTimout, the analytics are cancelled and the current incomplete report is returned.
+//
+// Pass nil for linkAnalyticsTimout to avoid link analytics.
+func InspectURL(inputURL string, linkAnalyticsTimout *time.Time) *InspectReport {
 
 	if !strings.HasPrefix(inputURL, "https://") && !strings.HasPrefix(inputURL, "http://") {
 		inputURL = "https://" + inputURL
@@ -51,6 +71,19 @@ func InspectURL(inputURL string) *InspectReport {
 
 		Links:    []*InspectedLink{},
 		Headings: map[string][]string{},
+
+		LinkAnalyticWG: &sync.WaitGroup{},
+	}
+
+	if linkAnalyticsTimout != nil {
+		// Create a context with a timeout
+		reqContextTimout, reqContextCancel := context.WithDeadline(context.Background(), *linkAnalyticsTimout)
+		report.RequestContext = &reqContextTimout
+		report.RequestContextCancel = reqContextCancel
+	} else {
+		// Set the context to nil
+		report.RequestContext = nil
+		report.RequestContextCancel = func() {}
 	}
 
 	// Get the webpage
@@ -242,13 +275,89 @@ func (report *InspectReport) parseLink(ATag *html.Token, linkText string) {
 
 	report.Links = append(report.Links, &link)
 
-	if shouldAnalyse {
+	// Analyse the link if it's not a special action link
+	// and RequestContext is not nil
+	if shouldAnalyse && report.RequestContext != nil {
+		// Add the link to the wait group
+		report.LinkAnalyticWG.Add(1)
 		go report.analyseLink(linkURL, &link)
 	}
 }
 
 func (report *InspectReport) analyseLink(inputURL string, link *InspectedLink) {
-	//TODO: implement
+
+	// Remove the link from the wait group
+	defer report.LinkAnalyticWG.Done()
+
+	// This blocks if the semaphore is full
+	concurrentLinkAnalysersSemaphore <- struct{}{}
+
+	defer func() {
+		// Release the semaphore
+		<-concurrentLinkAnalysersSemaphore
+	}()
+
+	// Get the webpage for the link within the context of the request
+	outgoingReq, outgoingReqErr := http.NewRequestWithContext(*report.RequestContext, http.MethodGet, inputURL, nil)
+
+	if outgoingReqErr != nil || outgoingReq == nil {
+		link.StatusCode = http.StatusInternalServerError
+		link.Type = "error"
+		return
+	}
+
+	outgoingReq.Header.Set(`User-Agent`, `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36`)
+	outgoingReq.Header.Set(`sec-ch-ua`, ` Not A;Brand";v="99", "Chromium";v="100", "Google Chrome";v="100"`)
+	outgoingReq.Header.Set(`sec-ch-ua-mobile`, `?0`)
+	outgoingReq.Header.Set(`sec-ch-ua-platform`, `"Linux"`)
+	outgoingReq.Header.Set(`Sec-Fetch-Dest`, `document`)
+	outgoingReq.Header.Set(`Sec-Fetch-Mode`, `navigate`)
+	outgoingReq.Header.Set(`Sec-Fetch-Site`, `same-origin`)
+	outgoingReq.Header.Set(`Sec-Fetch-User`, `?1`)
+
+	httpResp, httpErr := http.DefaultClient.Do(outgoingReq)
+
+	// If there was an error getting the webpage, return an error
+	if httpErr != nil {
+		if httpResp != nil {
+			link.StatusCode = httpResp.StatusCode
+		} else {
+			link.StatusCode = http.StatusRequestTimeout
+		}
+
+	} else {
+		link.StatusCode = httpResp.StatusCode
+
+	}
+
+	// some websites like linkedin, do not allow bots to access their pages
+	if link.StatusCode > 600 {
+		link.Type = "unscannable"
+		link.StatusCode = http.StatusOK
+	}
+
+}
+
+func (report *InspectReport) CountLinks() {
+	accessible := 0
+	inaccessible := 0
+	notAnalysed := 0
+
+	for _, lnk := range report.Links {
+		if lnk.StatusCode == 0 {
+			if lnk.Type == "external" || lnk.Type == "absolute" || lnk.Type == "relative" {
+				notAnalysed++
+			}
+		} else if lnk.StatusCode < 400 {
+			accessible++
+		} else {
+			inaccessible++
+		}
+	}
+
+	report.AccessibleLinkCount = accessible
+	report.InaccessibleLinkCount = inaccessible
+	report.NotAnalysedLinkCount = notAnalysed
 }
 
 // Remove HTML empty spaces
