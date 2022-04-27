@@ -66,3 +66,31 @@ func TestInspectURLDocType(t *testing.T) {
 		}
 	}
 }
+
+func TestInspectURLHeadings(t *testing.T) {
+
+	// Use web pages from archive.org, so they will not change with time
+	expectedHeadingCounts := map[string]map[string]int{
+		"https://web.archive.org/web/20220426124521/https://en.wikipedia.org/wiki/Germany": {
+			"h1": 1,
+			"h2": 14,
+			"h3": 24,
+		},
+		"https://web.archive.org/web/20220426164538/https://en.wikipedia.org/wiki/Go_(programming_language)": {
+			"h1": 1,
+			"h2": 14,
+			"h3": 14,
+			"h4": 4,
+		},
+	}
+
+	for url, expectedHeadingCount := range expectedHeadingCounts {
+		report := InspectURL(url)
+		for heading, expectedCount := range expectedHeadingCount {
+			if len(report.Headings[heading]) != expectedCount {
+				t.Errorf("URL %s returned %d headings of type %s, expected %d", url, len(report.Headings[heading]), heading, expectedCount)
+			}
+		}
+	}
+
+}
