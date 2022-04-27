@@ -112,197 +112,232 @@
   </center>
 
   {#if report}
-    <center style="margin-top:25px;">
+    {#if report.status_code < 300}
+      <center style="margin-top:25px;">
+        <div
+          style="border: 3px solid #111827;background-color:#164e63; margin-top:25px;border-radius:10px; padding: 20px 10px"
+        >
+          {#if isLoading}
+            <p>Links are still being analyzed</p>
+          {:else}
+            <p>Analysis complete</p>
+          {/if}
+
+          <progress value={$progress} />
+        </div>
+      </center>
       <div
-        style="border: 3px solid #111827;background-color:#164e63; margin-top:25px;border-radius:10px; padding: 20px 10px"
+        style="border: 3px solid #111827; background-color:#164e63; margin-top:25px; border-radius:10px; padding: 20px 2rem;"
       >
-        {#if isLoading}
-          <p>Links are still being analyzed</p>
-        {:else}
-          <p>Analysis complete</p>
-        {/if}
+        <h1 style="text-align:center">Inspect Report</h1>
+        <br />
+        <table style="font-size:1.2rem; text-align-left; width:100%">
+          <colgroup>
+            <col style="width: 15rem" />
+            <col style="width: 1rem" />
+            <col style="width: auto" />
+          </colgroup>
+          <tr>
+            <td>URL</td>
+            <td>:</td>
+            <td>{report.url}</td>
+          </tr>
+          <tr>
+            <td>Page Title</td>
+            <td>:</td>
+            <td>{report.page_title}</td>
+          </tr>
+          <tr>
+            <td>HTML Version</td>
+            <td>:</td>
+            <td>{report.html_version}</td>
+          </tr>
+          <tr>
+            <td>Status Code </td>
+            <td>:</td>
+            <td>{report.status_code}</td>
+          </tr>
+          <tr>
+            <td>Status Message</td>
+            <td>:</td>
+            <td>{report.status_msg}</td>
+          </tr>
+          <tr>
+            <td colspan="3"><hr /></td>
+          </tr>
+          <tr>
+            <td>Total Links</td>
+            <td>:</td>
+            <td>{report.total_link_count}</td>
+          </tr>
+          <tr>
+            <td>Accessible Links</td>
+            <td>:</td>
+            <td>{report.accessible_link_count}</td>
+          </tr>
+          <tr>
+            <td>Inaccessible Links</td>
+            <td>:</td>
+            <td>{report.inaccessible_link_count}</td>
+          </tr>
+          <tr>
+            <td>Non web Links</td>
+            <td>:</td>
+            <td>
+              {report.total_link_count -
+                report.accessible_link_count -
+                report.inaccessible_link_count -
+                report.not_analysed_link_count}
+            </td>
+          </tr>
+          <tr>
+            <td>Links not yet analysed</td>
+            <td>:</td>
+            <td>{report.not_analysed_link_count}</td>
+          </tr>
+          <tr>
+            <td>External Links</td>
+            <td>:</td>
+            <td>{report.external_link_count}</td>
+          </tr>
+          <tr>
+            <td>Internal Links</td>
+            <td>:</td>
+            <td>{report.internal_link_count}</td>
+          </tr>
+          <tr>
+            <td colspan="3"><hr /></td>
+          </tr>
+          <tr>
+            <td>Heading Types</td>
+            <td>:</td>
+            <td>{Object.keys(report.headings).length}</td>
+          </tr>
+          <tr>
+            <td colspan="3"><hr /></td>
+          </tr>
+        </table>
+        <br />
+        <h2 style="text-align:center;">Headings</h2>
 
-        <progress value={$progress} />
-      </div>
-    </center>
-    <div
-      style="border: 3px solid #111827; background-color:#164e63; margin-top:25px; border-radius:10px; padding: 20px 2rem;"
-    >
-      <h1 style="text-align:center">Inspect Report</h1>
-      <br />
-      <table style="font-size:1.2rem; text-align-left; width:100%">
-        <colgroup>
-          <col style="width: 15rem" />
-          <col style="width: 1rem" />
-          <col style="width: auto" />
-        </colgroup>
-        <tr>
-          <td>URL</td>
-          <td>:</td>
-          <td>{report.url}</td>
-        </tr>
-        <tr>
-          <td>Page Title</td>
-          <td>:</td>
-          <td>{report.page_title}</td>
-        </tr>
-        <tr>
-          <td>HTML Version</td>
-          <td>:</td>
-          <td>{report.html_version}</td>
-        </tr>
-        <tr>
-          <td>Status Code </td>
-          <td>:</td>
-          <td>{report.status_code}</td>
-        </tr>
-        <tr>
-          <td>Status Message</td>
-          <td>:</td>
-          <td>{report.status_msg}</td>
-        </tr>
-        <tr>
-          <td colspan="3"><hr /></td>
-        </tr>
-        <tr>
-          <td>Total Links</td>
-          <td>:</td>
-          <td>{report.total_link_count}</td>
-        </tr>
-        <tr>
-          <td>Accessible Links</td>
-          <td>:</td>
-          <td>{report.accessible_link_count}</td>
-        </tr>
-        <tr>
-          <td>Inaccessible Links</td>
-          <td>:</td>
-          <td>{report.inaccessible_link_count}</td>
-        </tr>
-        <tr>
-          <td>Non web Links</td>
-          <td>:</td>
-          <td>
-            {report.total_link_count -
-              report.accessible_link_count -
-              report.inaccessible_link_count -
-              report.not_analysed_link_count}
-          </td>
-        </tr>
-        <tr>
-          <td>Links not yet analysed</td>
-          <td>:</td>
-          <td>{report.not_analysed_link_count}</td>
-        </tr>
-        <tr>
-          <td>External Links</td>
-          <td>:</td>
-          <td>{report.external_link_count}</td>
-        </tr>
-        <tr>
-          <td>Internal Links</td>
-          <td>:</td>
-          <td>{report.internal_link_count}</td>
-        </tr>
-        <tr>
-          <td colspan="3"><hr /></td>
-        </tr>
-        <tr>
-          <td>Heading Types</td>
-          <td>:</td>
-          <td>{Object.keys(report.headings).length}</td>
-        </tr>
-        <tr>
-          <td colspan="3"><hr /></td>
-        </tr>
-      </table>
-      <br />
-      <h2 style="text-align:center;">Headings</h2>
-
-      {#each Object.keys(report.headings) as head, headindex}
-        <div
-          style="border: 3px solid #111827; margin-top:25px; border-radius:10px; padding: 20px 10px; margin-bottom:20px; background-color:#1e3a8a"
+        {#each Object.keys(report.headings) as head, headindex}
+          <div
+            style="border: 3px solid #111827; margin-top:25px; border-radius:10px; padding: 20px 10px; margin-bottom:20px; background-color:#1e3a8a"
+          >
+            <table style="font-size:1.2rem; text-align-left; width:100%;">
+              <colgroup>
+                <col style="width: 150px" />
+                <col style="width: auto" />
+              </colgroup>
+              <tr>
+                <td
+                  style="border-right: 1px solid gray; text-align: center; padding: 20px; "
+                >
+                  <h1>{head}</h1>
+                  <p>
+                    {report.headings[head].length}
+                    {report.headings[head].length == 1 ? "heading" : "headings"}
+                  </p>
+                </td>
+                <td>
+                  <div>
+                    <table
+                      style="font-size:1.2rem; text-align-left; width:100%;"
+                    >
+                      {#each report.headings[head] as h, hindex}
+                        <tr>
+                          <td style="border-bottom: 1px solid gray;">
+                            <p>{h}</p>
+                          </td>
+                        </tr>
+                      {/each}
+                    </table>
+                  </div>
+                </td>
+              </tr>
+            </table>
+          </div>
+        {/each}
+        <br />
+        <hr />
+        <br />
+        <h2
+          style="font-weight: bold ; width:100%; text-align:center; margin-top:20px"
         >
-          <table style="font-size:1.2rem; text-align-left; width:100%;">
-            <colgroup>
-              <col style="width: 150px" />
-              <col style="width: auto" />
-            </colgroup>
-            <tr>
-              <td
-                style="border-right: 1px solid gray; text-align: center; padding: 20px; "
-              >
-                <h1>{head}</h1>
-                <p>
-                  {report.headings[head].length}
-                  {report.headings[head].length == 1 ? "heading" : "headings"}
-                </p>
-              </td>
-              <td>
-                <div>
-                  <table style="font-size:1.2rem; text-align-left; width:100%;">
-                    {#each report.headings[head] as h, hindex}
-                      <tr>
-                        <td style="border-bottom: 1px solid gray;">
-                          <p>{h}</p>
-                        </td>
-                      </tr>
-                    {/each}
-                  </table>
-                </div>
-              </td>
-            </tr>
-          </table>
-        </div>
-      {/each}
-      <br />
-      <hr />
-      <br />
-      <h2
-        style="font-weight: bold ; width:100%; text-align:center; margin-top:20px"
-      >
-        Links
-      </h2>
+          Links
+        </h2>
 
-      {#each report.links as link, linkindex}
-        <div
-          style={`border: 3px solid #111827; margin-top:25px;border-radius:10px; padding: 20px 10px; margin-bottom:20px; 
+        {#each report.links as link, linkindex}
+          <div
+            style={`border: 3px solid #111827; margin-top:25px;border-radius:10px; padding: 20px 10px; margin-bottom:20px; 
           background-color:${getColor(link.status_code)}`}
-        >
-          <table style="font-size:1.2rem; text-align-left; width:100%;">
-            <colgroup>
-              <col style="width: 150px" />
-              <col style="width: 20px" />
-              <col style="width: auto" />
-            </colgroup>
-            <tr>
-              <td>Link</td>
-              <td>:</td>
-              <td> <a href={link.url} style="color: white;">{link.url}</a> </td>
-            </tr>
-            <tr>
-              <td>Type </td>
-              <td>:</td>
-              <td>{link.type}</td>
-            </tr>
-            {#if link.text}
+          >
+            <table style="font-size:1.2rem; text-align-left; width:100%;">
+              <colgroup>
+                <col style="width: 150px" />
+                <col style="width: 20px" />
+                <col style="width: auto" />
+              </colgroup>
               <tr>
-                <td>Text</td>
+                <td>Link</td>
                 <td>:</td>
-                <td>{link.text}</td>
+                <td>
+                  <a href={link.url} style="color: white;">{link.url}</a>
+                </td>
               </tr>
-            {/if}
-            {#if link.status_code}
               <tr>
-                <td>Status Code </td>
+                <td>Type </td>
                 <td>:</td>
-                <td>{link.status_code}</td>
+                <td>{link.type}</td>
               </tr>
-            {/if}
-          </table>
-        </div>
-      {/each}
-    </div>
+              {#if link.text}
+                <tr>
+                  <td>Text</td>
+                  <td>:</td>
+                  <td>{link.text}</td>
+                </tr>
+              {/if}
+              {#if link.status_code}
+                <tr>
+                  <td>Status Code </td>
+                  <td>:</td>
+                  <td>{link.status_code}</td>
+                </tr>
+              {/if}
+            </table>
+          </div>
+        {/each}
+      </div>
+    {:else}
+      <div
+        style="border: 3px solid #7f1d1d; background-color:#164e63; margin-top:25px; border-radius:10px; padding: 20px 2rem;"
+      >
+        <h1 style="text-align:center">This webpage cannot be reached</h1>
+        <br />
+        <table style="font-size:1.2rem; text-align-left; width:100%">
+          <colgroup>
+            <col style="width: 15rem" />
+            <col style="width: 1rem" />
+            <col style="width: auto" />
+          </colgroup>
+          <tr>
+            <td>URL</td>
+            <td>:</td>
+            <td>{report.url}</td>
+          </tr>
+          <tr>
+            <td>Status Code </td>
+            <td>:</td>
+            <td>{report.status_code}</td>
+          </tr>
+          <tr>
+            <td>Status Message</td>
+            <td>:</td>
+            <td>{report.status_msg}</td>
+          </tr>
+        </table>
+      </div>
+    {/if}
   {:else if isLoading}
     <h1 style="text-align: center;">Requesting...</h1>
   {/if}
