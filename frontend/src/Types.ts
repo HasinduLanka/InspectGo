@@ -5,6 +5,7 @@ export interface InspectResponse {
   html_version: string;
   page_title: string;
   headings: Headings;
+  login_field_count: number;
   links: Link[];
   accessible_link_count: number;
   inaccessible_link_count: number;

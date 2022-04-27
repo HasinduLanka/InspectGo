@@ -95,6 +95,24 @@ func TestInspectURLHeadings(t *testing.T) {
 
 }
 
+func TestInspectURLLoginFeilds(t *testing.T) {
+
+	// Use web pages from archive.org, so they will not change with time
+	expectedLoginFieldCount := map[string]int{
+		"https://en.wikipedia.org/w/index.php?title=Special:UserLogin":     1,
+		"https://en.wikipedia.org/w/index.php?title=Special:CreateAccount": 2,
+		"https://en.wikipedia.org/wiki/Main_Page":                          0,
+	}
+
+	for url, expectedCount := range expectedLoginFieldCount {
+		report := InspectURL(url, nil)
+		if report.LoginFieldCount != expectedCount {
+			t.Errorf("URL %s returned %d login fields, expected %d", url, report.LoginFieldCount, expectedCount)
+		}
+	}
+
+}
+
 func TestInspectURLLinks(t *testing.T) {
 
 	// Use web pages from archive.org, so they will not change with time

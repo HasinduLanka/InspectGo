@@ -72,6 +72,19 @@
     return color;
   }
 
+  function getLoginFieldMsg(): string {
+    if (report) {
+      if (report.login_field_count == 0) {
+        return "Non found";
+      } else if (report.login_field_count == 1) {
+        return "1 found. This could be a login page";
+      } else {
+        return `${report.login_field_count} found. This could be a sign up page`;
+      }
+    }
+    return "";
+  }
+
   const progress = tweened(0, {
     duration: 3000,
     easing: cubicOut,
@@ -161,6 +174,11 @@
             <td>Status Message</td>
             <td>:</td>
             <td>{report.status_msg}</td>
+          </tr>
+          <tr>
+            <td>Login fields</td>
+            <td>:</td>
+            <td>{getLoginFieldMsg()} </td>
           </tr>
           <tr>
             <td colspan="3"><hr /></td>

@@ -20,7 +20,6 @@ func DetectHTMLVersion(doctypeTag string) string {
 	}
 
 	// Normalize the doctype tag
-	doctypeTag = strings.ToLower(doctypeTag)
 	doctypeTag = strings.ReplaceAll(doctypeTag, `  `, ` `)
 
 	// Check if the doctype tag is in the map

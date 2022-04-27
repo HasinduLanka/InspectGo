@@ -29,6 +29,9 @@ type InspectReport struct {
 	// format: Headings["h1"] = []string{"big heading", "heading b"}
 	Headings map[string][]string `json:"headings"`
 
+	// Number of password fields in the page
+	LoginFieldCount int `json:"login_field_count"`
+
 	Links []*InspectedLink `json:"links"`
 
 	AccessibleLinkCount   int `json:"accessible_link_count"`
@@ -158,13 +161,17 @@ func (report *InspectReport) ParseTokens(tokenizer *html.Tokenizer) {
 
 		nextToken()
 
+		tknData := strings.ToLower(tkn.Data)
+
 		switch tokenType {
 		case html.DoctypeToken:
-			report.HTMLVersion = DetectHTMLVersion(tkn.Data)
+			report.HTMLVersion = DetectHTMLVersion(tknData)
+
+		case html.ErrorToken:
+			return
 
 		case html.StartTagToken:
 
-			tknData := strings.ToLower(tkn.Data)
 			switch tknData {
 
 			case "title":
@@ -196,10 +203,31 @@ func (report *InspectReport) ParseTokens(tokenizer *html.Tokenizer) {
 				}
 
 				report.parseLink(&linkTk, tagText)
+
+			case "input":
+				report.parseInputTag(&tkn)
+
 			}
 
-		case html.ErrorToken:
-			return
+		default:
+			switch tknData {
+
+			case "input":
+				report.parseInputTag(&tkn)
+
+			}
+
+		}
+	}
+}
+
+func (report *InspectReport) parseInputTag(tkn *html.Token) {
+
+	// check if a password input
+	for _, attr := range tkn.Attr {
+		if strings.ToLower(attr.Key) == "type" && strings.ToLower(attr.Val) == "password" {
+			report.LoginFieldCount++
+			break
 		}
 	}
 }
