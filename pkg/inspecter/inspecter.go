@@ -44,6 +44,7 @@ type InspectReport struct {
 	LinkAnalyticWG       *sync.WaitGroup    `json:"-"`
 	RequestContext       *context.Context   `json:"-"`
 	RequestContextCancel context.CancelFunc `json:"-"`
+	ParsedURL            *url.URL           `json:"-"`
 }
 
 type InspectedLink struct {
@@ -61,9 +62,13 @@ type InspectedLink struct {
 // Pass nil for linkAnalyticsTimout to avoid link analytics.
 func InspectURL(inputURL string, linkAnalyticsTimout *time.Time) *InspectReport {
 
+	inputURL = strings.TrimSpace(inputURL)
+
 	if !strings.HasPrefix(inputURL, "https://") && !strings.HasPrefix(inputURL, "http://") {
 		inputURL = "https://" + inputURL
 	}
+
+	inputURL = strings.TrimSuffix(inputURL, "/")
 
 	// Initialize the report with default values
 	report := InspectReport{
@@ -88,6 +93,15 @@ func InspectURL(inputURL string, linkAnalyticsTimout *time.Time) *InspectReport 
 		report.RequestContext = nil
 		report.RequestContextCancel = func() {}
 	}
+
+	parsedURL, parsedURLErr := url.Parse(inputURL)
+	if parsedURLErr != nil {
+		report.StatusCode = http.StatusBadRequest
+		report.StatusMsg = "URL not in valid format"
+		return &report
+	}
+
+	report.ParsedURL = parsedURL
 
 	// Get the webpage
 	httpResp, httpErr := http.Get(inputURL)
@@ -249,8 +263,6 @@ func (report *InspectReport) parseLink(ATag *html.Token, linkText string) {
 		return
 	}
 
-	link.URL = linkURL
-
 	// regex to check if the link is a special action link (javascript, mailto, etc)
 	rgxSpecialProtocol := regexp.MustCompile("^([a-zA-Z0-9]*?):")
 
@@ -264,6 +276,8 @@ func (report *InspectReport) parseLink(ATag *html.Token, linkText string) {
 	} else if strings.HasPrefix(linkURL, "#") {
 		link.Type = "fragment"
 		report.InternalLinkCount++
+		linkURL = report.ParsedURL.String() + linkURL
+		link.StatusCode = report.StatusCode
 
 	} else if strings.HasPrefix(linkURL, "tel:") {
 		link.Type = "telephone"
@@ -277,20 +291,21 @@ func (report *InspectReport) parseLink(ATag *html.Token, linkText string) {
 		link.Type = specialProtocolMatches[0][1]
 		report.ExternalLinkCount++
 
+	} else if strings.HasPrefix(linkURL, "//") {
+		// If the link starts with // it is an protocol relative link
+		link.Type = "external"
+		report.ExternalLinkCount++
+		shouldAnalyse = true
+
+		linkURL = report.ParsedURL.Scheme + ":" + linkURL
+
 	} else if strings.HasPrefix(linkURL, "/") {
 		link.Type = "absolute"
 		report.InternalLinkCount++
 
 		// If the link is absolute, we need to add the domain to the link
-		reportURL, reportURLErr := url.Parse(report.URL)
-		if reportURLErr == nil {
-			linkURL = reportURL.Scheme + "://" + reportURL.Host + linkURL
-			shouldAnalyse = true
-
-		} else {
-			link.StatusCode = http.StatusBadRequest
-			link.Type = "invalid"
-		}
+		linkURL = report.ParsedURL.Scheme + "://" + report.ParsedURL.Host + linkURL
+		shouldAnalyse = true
 
 	} else {
 		link.Type = "relative"
@@ -298,9 +313,10 @@ func (report *InspectReport) parseLink(ATag *html.Token, linkText string) {
 
 		shouldAnalyse = true
 		// If the link is relative, we need to add the base URL to it
-		linkURL = strings.TrimPrefix(report.URL, "/") + "/" + linkURL
+		linkURL = report.ParsedURL.String() + "/" + linkURL
 	}
 
+	link.URL = linkURL
 	report.Links = append(report.Links, &link)
 
 	// Analyse the link if it's not a special action link
