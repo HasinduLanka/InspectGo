@@ -94,3 +94,33 @@ func TestInspectURLHeadings(t *testing.T) {
 	}
 
 }
+
+func TestInspectURLLinks(t *testing.T) {
+
+	// Use web pages from archive.org, so they will not change with time
+	expectedLinkCounts := map[string]InspectReport{
+		"https://web.archive.org/web/20220426124521/https://en.wikipedia.org/wiki/Germany": {
+			TotalLinkCount:    3708,
+			ExternalLinkCount: 878,
+			InternalLinkCount: 2830,
+		},
+		"https://web.archive.org/web/20220426164538/https://en.wikipedia.org/wiki/Go_(programming_language)": {
+			TotalLinkCount:    1231,
+			ExternalLinkCount: 254,
+			InternalLinkCount: 977,
+		},
+	}
+
+	for url, expectedReport := range expectedLinkCounts {
+		report := InspectURL(url)
+		if report.TotalLinkCount != expectedReport.TotalLinkCount {
+			t.Errorf("URL %s returned %d total links, expected %d", url, report.TotalLinkCount, expectedReport.TotalLinkCount)
+		}
+		if report.ExternalLinkCount != expectedReport.ExternalLinkCount {
+			t.Errorf("URL %s returned %d external links, expected %d", url, report.ExternalLinkCount, expectedReport.ExternalLinkCount)
+		}
+		if report.InternalLinkCount != expectedReport.InternalLinkCount {
+			t.Errorf("URL %s returned %d internal links, expected %d", url, report.InternalLinkCount, expectedReport.InternalLinkCount)
+		}
+	}
+}

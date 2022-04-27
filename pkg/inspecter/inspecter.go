@@ -2,6 +2,8 @@ package inspecter
 
 import (
 	"net/http"
+	"net/url"
+	"regexp"
 	"strings"
 	"unicode"
 
@@ -18,6 +20,19 @@ type InspectReport struct {
 
 	// format: Headings["h1"] = []string{"big heading", "heading b"}
 	Headings map[string][]string `json:"headings"`
+
+	Links []*InspectedLink `json:"links"`
+
+	TotalLinkCount    int `json:"total_link_count"`
+	ExternalLinkCount int `json:"external_link_count"`
+	InternalLinkCount int `json:"internal_link_count"`
+}
+
+type InspectedLink struct {
+	URL        string `json:"url"`
+	Text       string `json:"text"`
+	Type       string `json:"type"`
+	StatusCode int    `json:"status_code"`
 }
 
 // InspectURL returns an InspectReport for the given URL
@@ -34,6 +49,7 @@ func InspectURL(inputURL string) *InspectReport {
 		HTMLVersion: `Not defined`,
 		PageTitle:   `Not defined`,
 
+		Links:    []*InspectedLink{},
 		Headings: map[string][]string{},
 	}
 
@@ -58,6 +74,8 @@ func InspectURL(inputURL string) *InspectReport {
 
 	tokenizer := html.NewTokenizer(httpResp.Body)
 	report.ParseTokens(tokenizer)
+
+	report.TotalLinkCount = len(report.Links)
 
 	return &report
 }
@@ -135,12 +153,102 @@ func (report *InspectReport) ParseTokens(tokenizer *html.Tokenizer) {
 					report.Headings[headingType] = append(report.Headings[headingType], tagText)
 				}
 
+			case "a":
+				linkTk := tkn
+
+				// To get the link text
+				tagText, shouldReturn := parseNextTextToken()
+				if shouldReturn {
+					return
+				}
+
+				report.parseLink(&linkTk, tagText)
 			}
 
 		case html.ErrorToken:
 			return
 		}
 	}
+}
+
+func (report *InspectReport) parseLink(ATag *html.Token, linkText string) {
+	link := InspectedLink{Text: linkText, StatusCode: 0}
+	var linkURL string
+
+	// Get the href attribute
+	for _, attr := range ATag.Attr {
+		if attr.Key == "href" {
+			linkURL = attr.Val
+			break
+		}
+	}
+
+	// Don't add the link if it's empty
+	if len(linkURL) == 0 {
+		return
+	}
+
+	link.URL = linkURL
+
+	// regex to check if the link is a special action link (javascript, mailto, etc)
+	rgxSpecialProtocol := regexp.MustCompile("^([a-zA-Z0-9]*?):")
+
+	shouldAnalyse := false
+
+	if strings.HasPrefix(linkURL, "http") {
+		link.Type = "external"
+		shouldAnalyse = true
+		report.ExternalLinkCount++
+
+	} else if strings.HasPrefix(linkURL, "#") {
+		link.Type = "fragment"
+		report.InternalLinkCount++
+
+	} else if strings.HasPrefix(linkURL, "tel:") {
+		link.Type = "telephone"
+		report.ExternalLinkCount++
+
+	} else if strings.HasPrefix(linkURL, "mailto:") {
+		link.Type = "email"
+		report.ExternalLinkCount++
+
+	} else if specialProtocolMatches := rgxSpecialProtocol.FindAllStringSubmatch(linkURL, 1); len(specialProtocolMatches) > 0 {
+		link.Type = specialProtocolMatches[0][1]
+		report.ExternalLinkCount++
+
+	} else if strings.HasPrefix(linkURL, "/") {
+		link.Type = "absolute"
+		report.InternalLinkCount++
+
+		// If the link is absolute, we need to add the domain to the link
+		reportURL, reportURLErr := url.Parse(report.URL)
+		if reportURLErr == nil {
+			linkURL = reportURL.Scheme + "://" + reportURL.Host + linkURL
+			shouldAnalyse = true
+
+		} else {
+			link.StatusCode = http.StatusBadRequest
+			link.Type = "invalid"
+		}
+
+	} else {
+		link.Type = "relative"
+		report.InternalLinkCount++
+
+		shouldAnalyse = true
+		// If the link is relative, we need to add the base URL to it
+		linkURL = strings.TrimPrefix(report.URL, "/") + "/" + linkURL
+	}
+
+	report.Links = append(report.Links, &link)
+
+	if shouldAnalyse {
+		go report.analyseLink(linkURL, &link)
+	}
+}
+
+func (report *InspectReport) analyseLink(inputURL string, link *InspectedLink) {
+	//TODO: implement
 }
 
 // Remove HTML empty spaces
