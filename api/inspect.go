@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/HasinduLanka/InspectGo/pkg/inspecter"
 )
 
 type inspectEndpointRequest struct {
@@ -25,7 +27,7 @@ func InspectEndpoint(wr http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	inspectResp := "InspectEndpoint: " + reqBody.URL
+	inspectResp := inspecter.InspectURL(reqBody.URL)
 
 	respBody, respEncodeErr := json.Marshal(inspectResp)
 

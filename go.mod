@@ -1,3 +1,3 @@
-module github.com/HasinduLanka/vercel-go-svelte
+module github.com/HasinduLanka/InspectGo
 
 go 1.17

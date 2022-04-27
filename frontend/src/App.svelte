@@ -1,5 +1,5 @@
 <script lang="ts">
-  let txtURL = "https://go.dev/";
+  let txtURL = "https://go.dev";
   let report: any;
 
   let Inspect = async (url: string) => {
@@ -11,7 +11,7 @@
       body: JSON.stringify({ url: url }),
     });
 
-    report = await reportResp.text();
+    report = JSON.stringify(JSON.parse(await reportResp.text()), null, 2);
   };
 </script>
 

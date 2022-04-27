@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/HasinduLanka/vercel-go-svelte/api"
+	"github.com/HasinduLanka/InspectGo/api"
 )
 
 // This source file faciliates a simple web server that serves static files and handles requests to the /api/hello endpoint.
