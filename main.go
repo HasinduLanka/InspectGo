@@ -18,6 +18,7 @@ func main() {
 	multiplexer.Handle("/", http.FileServer(http.Dir("./frontend/public")))
 
 	multiplexer.HandleFunc("/api/hello", api.HelloEndpoint)
+	multiplexer.HandleFunc("/api/inspect", api.InspectEndpoint)
 
 	log.Println("Listening on port 20000. Visit http://localhost:20000 if you're running this locally.")
 
