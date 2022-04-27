@@ -73,10 +73,14 @@ However, this specific deployment has some limitations :
   - Request header: `inspector-response-streamable = true`
   - Request body: JSON with URL to be inspected {url: "url"}
   - Response: Multiple responses streamed every 20 seconds, each containing a JSON that represents the analysis report state at that time.
-  - The first report containing basic information about the webpage is returned immediately and presentable to the user. This is further explained here.
+  - The first report containing basic information about the webpage is returned immediately and presentable to the user. This is further explained [here](Task.md#link-analysis-taking-too-long).
 
 - Response status codes:
   - 200: Success
   - 400: Bad request
   - 500: Internal server error
-- Structure of the report object can be found here (Go) and here (TypeScript)
+- Structure of the report object can be found [in `inspecter.go` (Go)](pkg/inspecter/inspecter.go) and [`Types.ts` (TypeScript)](frontend/src/Types.ts)
+
+## Task and challenges
+
+The objective of the task and the challenges I faced while working on the project are [explained on Task.md](Task.md)
