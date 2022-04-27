@@ -47,6 +47,10 @@ Possible solutions:
   - The first report containing the basic information about the webpage is shown almost immediately, making a swift user experience.
   - Sequel responses will be received every 20 seconds, containing the updated state of the report.
 
+# Testing against real websites that changes over time
+
+Writing test cases to test application functionality against real websites is a challenge. Their titles, headings, and links change over time. I solved it using web pages from archive.org instead of live websites for several tests.
+
 ## Client-side rendered content
 
 Websites built with frameworks like React or Svelte use client-side rendering where the actual content of a web page is rendered inside the browser. Inspecting these kinds of web pages is not possible unless they are hydrated or pre-rendered on the origin server.

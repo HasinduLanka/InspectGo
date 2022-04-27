@@ -99,9 +99,11 @@ func TestInspectURLLoginFeilds(t *testing.T) {
 
 	// Use web pages from archive.org, so they will not change with time
 	expectedLoginFieldCount := map[string]int{
-		"https://en.wikipedia.org/w/index.php?title=Special:UserLogin":     1,
-		"https://en.wikipedia.org/w/index.php?title=Special:CreateAccount": 2,
-		"https://en.wikipedia.org/wiki/Main_Page":                          0,
+		"https://web.archive.org/web/20220308231858/https://en.wikipedia.org/w/index.php?title=Special:UserLogin":                         1,
+		"https://web.archive.org/web/20220419071538/https://en.wikipedia.org/w/index.php?title=Special%3ACreateAccount&campaign=loginCTA": 2,
+		"https://en.wikipedia.org/wiki/Main_Page": 0,
+		"https://dev.to/enter":                    1,
+		"https://dev.to":                          0,
 	}
 
 	for url, expectedCount := range expectedLoginFieldCount {
