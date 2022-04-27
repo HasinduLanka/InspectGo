@@ -3,6 +3,8 @@ package inspecter
 import (
 	"net/http"
 	"strings"
+
+	"golang.org/x/net/html"
 )
 
 type InspectReport struct {
@@ -48,5 +50,45 @@ func InspectURL(inputURL string) *InspectReport {
 	report.StatusCode = httpResp.StatusCode
 	report.StatusMsg = httpResp.Status
 
+	tokenizer := html.NewTokenizer(httpResp.Body)
+	report.ParseTokens(tokenizer)
+
 	return &report
+}
+
+// ParseTokens parses the HTML tokens from the given tokenizer
+func (report *InspectReport) ParseTokens(tokenizer *html.Tokenizer) {
+	for {
+		var tokenType html.TokenType
+		var tkn html.Token
+
+		// Defined as a local function to use in the again
+		var nextToken = func() {
+			tokenType = tokenizer.Next()
+			tkn = tokenizer.Token()
+		}
+
+		nextToken()
+
+		switch tokenType {
+		case html.DoctypeToken:
+			report.HTMLVersion = DetectHTMLVersion(tkn.Data)
+
+		case html.StartTagToken:
+
+			tknData := strings.ToLower(tkn.Data)
+			switch tknData {
+
+			case "title":
+				nextToken() // To get the title text
+				if tokenType == html.TextToken {
+					report.PageTitle = tkn.Data
+				}
+
+			}
+
+		case html.ErrorToken:
+			return
+		}
+	}
 }
