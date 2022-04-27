@@ -119,13 +119,13 @@ func TestInspectURLLinks(t *testing.T) {
 	expectedLinkCounts := map[string]InspectReport{
 		"https://web.archive.org/web/20220426124521/https://en.wikipedia.org/wiki/Germany": {
 			TotalLinkCount:    3708,
-			ExternalLinkCount: 878,
-			InternalLinkCount: 2830,
+			ExternalLinkCount: 908,
+			InternalLinkCount: 2800,
 		},
 		"https://web.archive.org/web/20220426164538/https://en.wikipedia.org/wiki/Go_(programming_language)": {
 			TotalLinkCount:    1231,
-			ExternalLinkCount: 254,
-			InternalLinkCount: 977,
+			ExternalLinkCount: 263,
+			InternalLinkCount: 968,
 		},
 	}
 
