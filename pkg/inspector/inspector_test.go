@@ -1,4 +1,4 @@
-package inspecter
+package inspector
 
 import (
 	"log"
@@ -120,8 +120,8 @@ func TestInspectURLLinks(t *testing.T) {
 	// Use web pages from archive.org, so they will not change with time
 	expectedLinkCounts := map[string]InspectReport{
 		"https://web.archive.org/web/20220426124521/https://en.wikipedia.org/wiki/Germany": {
-			TotalLinkCount:    3708,
-			ExternalLinkCount: 908,
+			TotalLinkCount:    3709,
+			ExternalLinkCount: 909,
 			InternalLinkCount: 2800,
 		},
 		"https://web.archive.org/web/20220426164538/https://en.wikipedia.org/wiki/Go_(programming_language)": {

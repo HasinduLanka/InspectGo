@@ -49,7 +49,7 @@
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "inspecter-response-streamable": "true",
+        "inspector-response-streamable": "true",
       },
       body: JSON.stringify({ url: url }),
     });

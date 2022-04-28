@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/HasinduLanka/InspectGo/pkg/inspecter"
+	"github.com/HasinduLanka/InspectGo/pkg/inspector"
 )
 
 type inspectEndpointRequest struct {
@@ -31,7 +31,7 @@ func InspectEndpoint(wr http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	inspectResp := inspecter.InspectURL(reqBody.URL, &bestBefore)
+	inspectResp := inspector.InspectURL(reqBody.URL, &bestBefore)
 	// If there was an error inspecting the URL, it will be returned in the response
 
 	// Return the response in chunks (response streaming)
@@ -41,8 +41,8 @@ func InspectEndpoint(wr http.ResponseWriter, req *http.Request) {
 		log.Println("endpoint /inspect : response streaming unavailable in this platform")
 	}
 
-	// check request header for "inspecter-response-streamable"
-	if req.Header.Get("inspecter-response-streamable") != "true" {
+	// check request header for "inspector-response-streamable"
+	if req.Header.Get("inspector-response-streamable") != "true" {
 		flusherAvailable = false
 	}
 
@@ -119,6 +119,6 @@ func getMaxAPIRequestDuration() time.Duration {
 	if isVercel {
 		return time.Second * 9
 	} else {
-		return time.Second * 180
+		return time.Minute * 10
 	}
 }

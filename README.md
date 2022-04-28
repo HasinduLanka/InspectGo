@@ -27,8 +27,8 @@ Standard Go development environment is used.
 
 - Visual Studio Code is preferred as the IDE.
 - Code formatting is done using inbuilt `go fmt`
-- NodeJS and NPM are required only if you do frontend development.
 - Frontend is a SvelteJS web app written in TypeScript, which isn't covered in this documentation.
+- NodeJS is required only if you do frontend development.
 - Fork this repository, create a feature branch, and make a pull request to contribute.
 
 ## Testing
@@ -38,7 +38,7 @@ Go tests are configured for each functionality. They are used to test the librar
 Test all using:
 
 ```
-go test ./... -v
+go test -v ./...
 ```
 
 ## Deployment
@@ -63,7 +63,7 @@ However, this specific deployment has some limitations :
 - Usage 1
 
   - Method: POST
-  - Request body: JSON with URL to be inspected {url: "url"}
+  - Request body: JSON with URL to be inspected `{url: "url"}`
   - Response: Single JSON that returns the analysis report.
   - The response could take more than 3 minutes when inspecting large web pages.
 
@@ -71,7 +71,7 @@ However, this specific deployment has some limitations :
 
   - Method: POST
   - Request header: `inspector-response-streamable = true`
-  - Request body: JSON with URL to be inspected {url: "url"}
+  - Request body: JSON with URL to be inspected `{url: "url"}`
   - Response: Multiple responses streamed every 20 seconds, each containing a JSON that represents the analysis report state at that time.
   - The first report containing basic information about the webpage is returned immediately and presentable to the user. This is further explained [here](Task.md#link-analysis-taking-too-long).
 
@@ -79,7 +79,7 @@ However, this specific deployment has some limitations :
   - 200: Success
   - 400: Bad request
   - 500: Internal server error
-- Structure of the report object can be found [in `inspecter.go` (Go)](pkg/inspecter/inspecter.go) and [`Types.ts` (TypeScript)](frontend/src/Types.ts)
+- Structure of the report object can be found [in `inspector.go` (Go)](pkg/inspector/inspector.go) and [`Types.ts` (TypeScript)](frontend/src/Types.ts)
 
 ## Task and challenges
 

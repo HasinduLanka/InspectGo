@@ -1,4 +1,4 @@
-package inspecter
+package inspector
 
 import (
 	"context"
