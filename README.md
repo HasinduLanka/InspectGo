@@ -47,6 +47,18 @@ The project is targeted to run on serverless platforms such as AWS Lambda, Googl
 
 Deployment as a monolithic web server or a docker container is also supported out of the box. Direct source code deployment is recommended instead of pre-compiled binaries.
 
+Building a docker container:
+
+```
+docker build . -t inspectgo
+```
+
+Run the container:
+
+```
+docker run -p 20000:20000 inspectgo:latest
+```
+
 Currently, the project is deployed to Vercel with Go serverless functions: https://inspect-go.vercel.app/
 
 However, this specific deployment has some limitations :

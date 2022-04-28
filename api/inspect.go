@@ -119,6 +119,6 @@ func getMaxAPIRequestDuration() time.Duration {
 	if isVercel {
 		return time.Second * 9
 	} else {
-		return time.Minute * 10
+		return time.Minute * 3
 	}
 }
