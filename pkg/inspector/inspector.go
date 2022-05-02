@@ -70,6 +70,15 @@ func InspectURL(inputURL string, linkAnalyticsTimout *time.Time) *InspectReport 
 
 	inputURL = strings.TrimSuffix(inputURL, "/")
 
+	// Get the webpage
+	httpResp, httpErr := http.Get(inputURL)
+
+	// Return the report
+	return InspectURLResponse(inputURL, httpResp, httpErr, linkAnalyticsTimout)
+}
+
+func InspectURLResponse(inputURL string, httpResp *http.Response, httpErr error, linkAnalyticsTimout *time.Time) *InspectReport {
+
 	// Initialize the report with default values
 	report := InspectReport{
 		URL: inputURL,
@@ -102,9 +111,6 @@ func InspectURL(inputURL string, linkAnalyticsTimout *time.Time) *InspectReport 
 	}
 
 	report.ParsedURL = parsedURL
-
-	// Get the webpage
-	httpResp, httpErr := http.Get(inputURL)
 
 	// If there was an error getting the webpage, return an error
 	if httpErr != nil {
