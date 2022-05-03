@@ -70,7 +70,6 @@ func TestInspectURLDocType(t *testing.T) {
 		{testArchiveURL + "go.dev.html", "https://go.dev"}:                                           "HTML 5",
 		{testArchiveURL + "germany.wiki.html", "https://en.wikipedia.org/wiki/Germany"}:              "HTML 5",
 		{testArchiveURL + "go.wiki.html", "https://en.wikipedia.org/wiki/Go_(programming_language)"}: "HTML 5",
-		{testArchiveURL + "w3.html401.html", "https://www.w3.org/TR/html401"}:                        "HTML 4.01 Transitional",
 	}
 
 	for url, expectedDocType := range expectedDocTypes {
