@@ -74,10 +74,11 @@ func InspectURL(inputURL string, linkAnalyticsTimout *time.Time) *InspectReport 
 	httpResp, httpErr := http.Get(inputURL)
 
 	// Return the report
-	return InspectURLResponse(inputURL, httpResp, httpErr, linkAnalyticsTimout)
+	return inspectURLResponse(inputURL, httpResp, httpErr, linkAnalyticsTimout)
 }
 
-func InspectURLResponse(inputURL string, httpResp *http.Response, httpErr error, linkAnalyticsTimout *time.Time) *InspectReport {
+// Helper function for InspectURL. This is refractored to simplify unit testing.
+func inspectURLResponse(inputURL string, httpResp *http.Response, httpErr error, linkAnalyticsTimout *time.Time) *InspectReport {
 
 	// Initialize the report with default values
 	report := InspectReport{
@@ -356,8 +357,9 @@ func (report *InspectReport) analyseLink(inputURL string, link *InspectedLink) {
 		return
 	}
 
+	// Disguise the user agent as a google chrome browser running on linux
 	outgoingReq.Header.Set(`User-Agent`, `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36`)
-	outgoingReq.Header.Set(`sec-ch-ua`, ` Not A;Brand";v="99", "Chromium";v="100", "Google Chrome";v="100"`)
+	outgoingReq.Header.Set(`sec-ch-ua`, `" Not A;Brand";v="99", "Chromium";v="100", "Google Chrome";v="100"`)
 	outgoingReq.Header.Set(`sec-ch-ua-mobile`, `?0`)
 	outgoingReq.Header.Set(`sec-ch-ua-platform`, `"Linux"`)
 	outgoingReq.Header.Set(`Sec-Fetch-Dest`, `document`)

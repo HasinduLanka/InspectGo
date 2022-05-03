@@ -106,7 +106,7 @@
 
 <div class="container">
   <center style="margin-top:25px;">
-    <h1 style="margin: 10px">Inspect Go Dev</h1>
+    <h1 style="margin: 10px">Inspect Go</h1>
     <p style="margin: 10px">Inspect webpages and see how they are built.</p>
     <div
       style="height: 100px; border: 3px solid #111827;background-color:#164e63; margin-top:25px;border-radius:10px; padding: 20px 10px"

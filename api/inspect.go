@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/HasinduLanka/InspectGo/pkg/inspector"
@@ -41,12 +42,17 @@ func InspectEndpoint(wr http.ResponseWriter, req *http.Request) {
 		log.Println("endpoint /inspect : response streaming unavailable in this platform")
 	}
 
-	// check request header for "inspector-response-streamable"
+	// check request headers for "inspector-response-streamable"
 	if req.Header.Get("inspector-response-streamable") != "true" {
 		flusherAvailable = false
 	}
 
+	// Make sure not to write two responses at once
+	respondLock := sync.Mutex{}
+
 	respondReport := func() {
+
+		respondLock.Lock()
 
 		inspectResp.CountLinks()
 		respBody, respEncodeErr := json.Marshal(inspectResp)
@@ -62,6 +68,10 @@ func InspectEndpoint(wr http.ResponseWriter, req *http.Request) {
 		if flusherAvailable {
 			flusher.Flush()
 		}
+
+		// Keep enough time for the response to be read by client
+		time.Sleep(10 * time.Second)
+		respondLock.Unlock()
 	}
 
 	var endChannel chan bool
@@ -73,7 +83,7 @@ func InspectEndpoint(wr http.ResponseWriter, req *http.Request) {
 
 		time.Sleep(2 * time.Second)
 
-		// Ticker to respond every 30 seconds
+		// Ticker to respond every 20 seconds
 		ticker := time.NewTicker(20 * time.Second)
 		defer ticker.Stop()
 
@@ -87,7 +97,7 @@ func InspectEndpoint(wr http.ResponseWriter, req *http.Request) {
 					log.Println("endpoint /inspect : ticking report returned")
 
 				case <-endChannel:
-					log.Println("endpoint /inspect : request context done")
+					log.Println("endpoint /inspect : request streaming done")
 					return
 				}
 			}
