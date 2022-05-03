@@ -52,7 +52,9 @@ func InspectEndpoint(wr http.ResponseWriter, req *http.Request) {
 
 	respondReport := func() {
 
-		respondLock.Lock()
+		if flusherAvailable {
+			respondLock.Lock()
+		}
 
 		inspectResp.CountLinks()
 		respBody, respEncodeErr := json.Marshal(inspectResp)
@@ -69,9 +71,11 @@ func InspectEndpoint(wr http.ResponseWriter, req *http.Request) {
 			flusher.Flush()
 		}
 
-		// Keep enough time for the response to be read by client
-		time.Sleep(10 * time.Second)
-		respondLock.Unlock()
+		if flusherAvailable {
+			// Keep enough time for the response to be read by client
+			time.Sleep(10 * time.Second)
+			respondLock.Unlock()
+		}
 	}
 
 	var endChannel chan bool
